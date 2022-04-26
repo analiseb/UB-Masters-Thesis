@@ -1,4 +1,4 @@
-# Non-Discrimination in Deep Learning: An Application to trustworthy Cardiac Disease Diagnosis
+# Non-Discrimination in Deep Learning: An Application to trustworthy Cardiovascular Disease Diagnosis
 
 This repository is the majority of my thesis in partial fulfillment of the requirements for the degree of Masters of Science in Fundamental Principles of Data Science from the University of Barcelona
 

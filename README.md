@@ -4,7 +4,7 @@ This repository is the majority of my thesis in partial fulfillment of the requi
 
 ## About the Project
 
-The aim of this project is to investigate and develop a fairness framework to mitigate bias by deep learning models in the multi-classification of cardiovascular diseases (CVDs). This model identifies three protected groups, race, sex, and age, to evaluate fairness in the diagnosis of the followings CVDs:
+The aim of this project is to investigate and develop a fairness framework to mitigate bias in a deep learning multi-classification model for the diagnosis of cardiovascular diseases (CVDs). This model identifies three protected groups, *race, sex, and age,* to evaluate fairness against in the classification of the followings CVDs:
 
   1. Cardiomyopathies (control)
   2. Myocardial Infarction
@@ -16,4 +16,6 @@ The aim of this project is to investigate and develop a fairness framework to mi
   8. Cerebral Infarction
   9. Arrhythmia
 
+## The Dataset
 
+Data for this project was sourced from the [UKBiobank](https://www.ukbiobank.ac.uk/), a largescale biomedical database with information from participants across the UK. Fields used in this project include physical measures, sociodemographic, lifestyle, environmental, early-life, mental health, and bloody assay factors.

@@ -10,11 +10,10 @@ The aim of this project is to investigate and develop a fairness framework to mi
   2. Myocardial Infarction
   3. Ischemic Heart Disease
   4. Heart Failure
-  5. Hypertension
-  6. Peripheral Vascular Disease
-  7. Cardiac Arrest
-  8. Cerebral Infarction
-  9. Arrhythmia
+  5. Peripheral Vascular Disease
+  6. Cardiac Arrest
+  7. Cerebral Infarction
+  8. Arrhythmia
 
 ## The Dataset
 

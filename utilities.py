@@ -6,6 +6,7 @@ from tensorflow.keras.optimizers  import Adam, Adagrad, SGD
 from sklearn.model_selection import train_test_split
 import global_variables as gv
 import pandas as pd
+import numpy as np
 
 from imblearn.over_sampling import ADASYN, RandomOverSampler
 from imblearn.under_sampling import RandomUnderSampler
@@ -127,3 +128,24 @@ def mlp_model( X_train, X_val, y_val, y_train, X_test, y_test, epochs, batch, ac
     )
     score = model.evaluate(X_test, y_test, verbose=0)
     return history, score
+
+def show_values(axs, orient="v", space=.1):
+    def _single(ax):
+        if orient == "v":
+            for p in ax.patches:
+                _x = p.get_x() + p.get_width() / 2
+                _y = p.get_y() + p.get_height() + (p.get_height()*0.02)
+                value = '{:.1f}'.format(p.get_height())
+                ax.text(_x, _y, value, ha="center", fontsize=14) 
+        elif orient == "h":
+            for p in ax.patches:
+                _x = p.get_x() + p.get_width() + float(space)
+                _y = p.get_y() + p.get_height() - (p.get_height()*0.5)
+                value = '{:.1f}'.format(p.get_width())
+                ax.text(_x, _y, value, ha="left", fontsize=14)
+
+    if isinstance(axs, np.ndarray):
+        for idx, ax in np.ndenumerate(axs):
+            _single(ax)
+    else:
+        _single(axs)

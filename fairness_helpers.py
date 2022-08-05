@@ -3,6 +3,7 @@ from aif360.metrics import BinaryLabelDatasetMetric, ClassificationMetric
 import numpy as np
 import tqdm
 import matplotlib.pyplot as plt
+from sklearn.metrics import accuracy_score
 
 
 def fair_metrics(dataset, y_pred):

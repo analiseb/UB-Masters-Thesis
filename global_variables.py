@@ -1,6 +1,7 @@
 import pandas as pd
 
 data_link ='https://github.com/analiseb/UB-Masters-Thesis/blob/main/data/CVD_data.csv?raw=true'
+pre_data_link = 'https://github.com/analiseb/UB-Masters-Thesis/blob/main/data/preprocessed-ukb46359.csv?raw=true'
 
 outcomes = ['outcome_myocardial_infarction','outcome_cardiomyopathies','outcome_ischemic_heart_disease','outcome_heart_failure','outcome_peripheral_vascular_disease','outcome_cardiac_arrest','outcome_cerebral_infarction','outcome_arrhythmia']
 prioritized_outcomes = ['outcome_myocardial_infarction', 'outcome_ischemic_heart_disease', 'outcome_heart_failure','outcome_peripheral_vascular_disease']

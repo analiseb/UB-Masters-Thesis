@@ -4,6 +4,7 @@ import numpy as np
 import tqdm
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
+import global_variables as gv
 
 
 def fair_metrics(dataset, y_pred):
@@ -45,11 +46,11 @@ def validate_visualize(dataset, y_pred_proba):
 
         classified_metric = ClassificationMetric(dataset, 
                                                         dataset_pred,
-                                                 unprivileged_groups=unprivileged_groups,
-                                                 privileged_groups=privileged_groups)
+                                                 unprivileged_groups=gv.unprivileged_groups,
+                                                 privileged_groups=gv.privileged_groups)
         metric_pred = BinaryLabelDatasetMetric(dataset_pred,
-                                               unprivileged_groups=unprivileged_groups,
-                                               privileged_groups=privileged_groups)
+                                               unprivileged_groups=gv.unprivileged_groups,
+                                               privileged_groups=gv.privileged_groups)
 
         TPR = classified_metric.true_positive_rate()
         TNR = classified_metric.true_negative_rate()
@@ -78,7 +79,6 @@ def validate_visualize(dataset, y_pred_proba):
     theil_ind_at_best_bal_acc = theil_ind[thresh_arr_best_ind]
     
     #Plot balanced accuracy, abs(1-disparate impact)
-    % matplotlib inline
 
     fig, ax1 = plt.subplots(figsize=(8,4))
     ax1.plot(thresh_arr, bal_acc_arr)
@@ -132,11 +132,11 @@ def validate_test(dataset, y_pred_proba, threshold):
 
     classified_metric = ClassificationMetric(dataset, 
                                             dataset_pred,
-                                            unprivileged_groups=unprivileged_groups,
-                                            privileged_groups=privileged_groups)
+                                            unprivileged_groups=gv.unprivileged_groups,
+                                            privileged_groups=gv.privileged_groups)
     metric_pred = BinaryLabelDatasetMetric(dataset_pred,
-                                            unprivileged_groups=unprivileged_groups,
-                                            privileged_groups=privileged_groups)
+                                            unprivileged_groups=gv.unprivileged_groups,
+                                            privileged_groups=gv.privileged_groups)
 
     TPR = classified_metric.true_positive_rate()
     TNR = classified_metric.true_negative_rate()

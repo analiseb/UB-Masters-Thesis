@@ -22,6 +22,7 @@ protected_attributes = ['31-0.0',  '21000-0.0'] # age 21003-0.0
 sex_mapping = {1.0:'Male', 
        0.0:'Female'
 }
+
 race_mapping = {1001.0:'British',
         1003.0:'Any other white background',
         1002.0:'Irish',
@@ -107,3 +108,42 @@ input_mapping = {'30850-0.0': 'testosterone',
                 'hypertension': 'hypertension'
 }
         
+
+# binary mapping of sex attributes
+
+binary_sex = {'Male':1,
+              'Female':0
+    
+}
+
+# remmap race to white/non-white (1:white, 0:non-white)
+
+binary_race =  {'British':1,
+        'Any other white background':1,
+        'Irish':1,
+        'Indian':0,
+        'Other ethnic group':0,
+        'Caribbean':0,
+        'Pakistani':0,
+        'African':0,
+        'Any other Asian background':0,
+        'White':1,
+        'Chinese':0,
+        'Any other mixed background':0,
+        'White and Asian':0,
+        'White and Black Caribbean':0,
+        'Bangladeshi':0,
+        'White and Black African':0,
+        'Mixed':0,
+        'Asian or Asian British':0,
+        'Any other Black background':0,
+        'Black or Black British': 0   
+}
+
+privileged_groups = { 'sex': 1,
+                        'race':1
+}
+
+unprivileged_groups = { 'sex': 0,
+                        'race':0
+}

@@ -149,3 +149,5 @@ def show_values(axs, orient="v", space=.1):
             _single(ax)
     else:
         _single(axs)
+
+def get_micro_metric(outcomes)

@@ -150,4 +150,4 @@ def show_values(axs, orient="v", space=.1):
     else:
         _single(axs)
 
-def get_micro_metric(outcomes)
+# def get_micro_metric(outcomes)

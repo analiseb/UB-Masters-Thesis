@@ -12,6 +12,8 @@ import numpy as np
 from imblearn.over_sampling import ADASYN, RandomOverSampler
 from imblearn.under_sampling import RandomUnderSampler
 
+
+import matplotlib.pyplot as plt
 import tensorflow as tf
 from keras import backend as K
 from keras.models import Sequential, load_model

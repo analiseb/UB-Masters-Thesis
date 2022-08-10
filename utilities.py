@@ -2,8 +2,9 @@
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import OneHotEncoder
 from sklearn.preprocessing import QuantileTransformer, RobustScaler, StandardScaler,MinMaxScaler
-from tensorflow.keras.optimizers  import Adam, Adagrad, SGD
-from sklearn.model_selection import train_test_split
+from tensorflow.keras.metrics import AUC
+from sklearn.metrics import roc_auc_score, average_precision_score
+
 import global_variables as gv
 import pandas as pd
 import numpy as np
@@ -11,11 +12,8 @@ import numpy as np
 from imblearn.over_sampling import ADASYN, RandomOverSampler
 from imblearn.under_sampling import RandomUnderSampler
 
-import keras
 import tensorflow as tf
 from keras import backend as K
-from keras import metrics
-from keras import regularizers
 from keras.models import Sequential, load_model
 from keras.layers import Dense, Dropout, Flatten, Activation, Concatenate
 from tensorflow.keras.optimizers  import Adam, Adagrad, SGD
@@ -84,6 +82,33 @@ def resample_data(X_train, y_train, method):
         
     return X_train, y_train
 
+# activations
+def gelu(x):
+    return 0.5 * x * (1 + tf.tanh(tf.sqrt(2 / np.pi) * (x + 0.044715 * tf.pow(x, 3))))
+
+class Mish(Activation):
+    '''
+    Mish Activation Function.
+    see: https://github.com/digantamisra98/Mish/blob/master/Mish/TFKeras/mish.py
+    .. math::
+        mish(x) = x * tanh(softplus(x)) = x * tanh(ln(1 + e^{x}))
+    Shape:
+        - Input: Arbitrary. Use the keyword argument `input_shape`
+        (tuple of integers, does not include the samples axis)
+        when using this layer as the first layer in a model.
+        - Output: Same shape as the input.
+    Examples:
+        >>> X = Activation('Mish', name="conv1_act")(X_input)
+    '''
+
+    def __init__(self, activation, **kwargs):
+        super(Mish, self).__init__(activation, **kwargs)
+        self.__name__ = 'Mish'
+
+def mish(inputs):
+    return inputs * tf.math.tanh(tf.math.softplus(inputs))
+
+# metrics
 def recall_m(y_true, y_pred):
     true_positives = K.sum(K.round(K.clip(y_true * y_pred, 0, 1)))
     possible_positives = K.sum(K.round(K.clip(y_true, 0, 1)))
@@ -150,4 +175,32 @@ def show_values(axs, orient="v", space=.1):
     else:
         _single(axs)
 
-# def get_micro_metric(outcomes)
+# useful eval functions for mlp
+def mAP(y_true, y_pred):
+    return tf.py_function(average_precision_score, (y_true, y_pred), tf.double)
+
+def compile_model(model, loss, metrics, optimizer):
+    model.compile(loss=loss, metrics=metrics, optimizer=optimizer)
+    return model
+
+def plot_history(history, measures):
+    """
+    history: Keras training history
+    measures = list of names of measures
+    """
+    rows = len(measures) // 2 + len(measures) % 2
+    fig, panels = plt.subplots(rows, 2, figsize=(15, 5))
+    plt.subplots_adjust(top = 0.99, bottom=0.01, hspace=0.4, wspace=0.2)
+    try:
+        panels = [item for sublist in panels for item in sublist]
+    except:
+        pass
+    for k, measure in enumerate(measures):
+        panel = panels[k]
+        panel.set_title(measure + ' history')
+        panel.plot(history.epoch, history.history[measure], label="Train "+measure)
+        panel.plot(history.epoch, history.history["val_"+measure], label="Validation "+measure)
+        panel.set(xlabel='epochs', ylabel=measure)
+        panel.legend()
+        
+    plt.show(fig)

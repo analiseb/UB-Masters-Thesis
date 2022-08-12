@@ -16,7 +16,7 @@ numerical_cols = df.iloc[:,18:18+13].columns.to_list()
 categorical_cols = df.iloc[:,18+13:18+13+30].columns.to_list() # ordinal encoded
 nominal_cats = ['1428-0.0','20117-0.0','2100-0.0','2654-0.0','21000-0.0','1538-0.0','31-0.0','6138-0.0','2090-0.0','1508-0.0','6142-0.0','1468-0.0','1239-0.0','1448-0.0','hypertension']
 
-protected_attributes = ['31-0.0',  '21000-0.0'] # age 21003-0.0
+protected_attributes = ['31-0.0',  '21000-0.0', '21003-0.0'] # age 21003-0.0
 
 # mappings
 sex_mapping = {1.0:'Male', 

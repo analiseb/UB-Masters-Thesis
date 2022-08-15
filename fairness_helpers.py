@@ -6,6 +6,8 @@ import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
 import global_variables as gv
 
+algo_names = ['baseline', 'preprocessing', 'inprocessing', 'postprocessing']
+
 
 def fair_metrics(dataset, y_pred):
     dataset_pred = dataset.copy()
@@ -167,3 +169,35 @@ def validate_test(dataset, y_pred_proba, threshold):
             "stat_par_diff": stat_par_diff_at_best_bal_acc,
             "eq_opp_diff": eq_opp_diff_at_best_bal_acc,
             "theil_ind": theil_ind_at_best_bal_acc}
+
+def plot_compare_intervention():
+    y_pred = postproc.predict_proba(X_test)[:, 1]
+    y_lr = postproc.estimator_.predict_proba(X_test)[:, 1]
+    br = postproc.postprocessor_.base_rates_
+    i = X_test.index.get_level_values('sex') == 1
+
+    plt.plot([0, br[0]], [0, 1-br[0]], '-b', label='All calibrated classifiers (Females)')
+    plt.plot([0, br[1]], [0, 1-br[1]], '-r', label='All calibrated classifiers (Males)')
+
+    plt.scatter(generalized_fpr(y_test[~i], y_lr[~i]),
+                generalized_fnr(y_test[~i], y_lr[~i]),
+                300, c='b', marker='.', label='Original classifier (Females)')
+    plt.scatter(generalized_fpr(y_test[i], y_lr[i]),
+                generalized_fnr(y_test[i], y_lr[i]),
+                300, c='r', marker='.', label='Original classifier (Males)')
+                                                                            
+    plt.scatter(generalized_fpr(y_test[~i], y_pred[~i]),
+                generalized_fnr(y_test[~i], y_pred[~i]),
+                100, c='b', marker='d', label='Post-processed classifier (Females)')
+    plt.scatter(generalized_fpr(y_test[i], y_pred[i]),
+                generalized_fnr(y_test[i], y_pred[i]),
+                100, c='r', marker='d', label='Post-processed classifier (Males)')
+
+    plt.plot([0, 1], [generalized_fnr(y_test, y_pred)]*2, '--', c='0.5')
+
+    plt.axis('square')
+    plt.xlim([0.0, 0.4])
+    plt.ylim([0.3, 0.7])
+    plt.xlabel('generalized fpr');
+    plt.ylabel('generalized fnr');
+    plt.legend(bbox_to_anchor=(1.04,1), loc='upper left')

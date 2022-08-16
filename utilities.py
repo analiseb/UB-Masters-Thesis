@@ -57,6 +57,26 @@ def process_features(data, target, norm_method=StandardScaler(), one_hot=True, v
     else:
       return X_train, X_test, y_train, y_test
 
+def transform_features(data, target, norm_method=StandardScaler(), one_hot=True, val=True):
+    
+    # split data into features and target 
+    X = data.iloc[:,:61]
+    y = data[target]
+    
+    # scale numerical features
+    scaler = norm_method # QuantileTransformer(output_distribution='uniform'), StandardScaler(), MaxMinScaler()
+    X[gv.continuous_cols+gv.numerical_cols]=scaler.fit_transform(X[gv.continuous_cols+gv.numerical_cols])
+    
+    # get_dummies on nominal categorical features & drop original cols
+    if one_hot:
+        dummies = pd.get_dummies(X[gv.categorical_cols], columns=gv.nominal_cats, drop_first=True)
+
+        X[dummies.columns] = dummies.iloc[:len(X),:]
+        del(dummies)
+
+        X.drop(gv.nominal_cats,axis=1,inplace=True)
+    
+    return X, y
 
 def resample_data(X_train, y_train, method):
     

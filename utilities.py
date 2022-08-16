@@ -9,7 +9,7 @@ import global_variables as gv
 import pandas as pd
 import numpy as np
 
-from imblearn.over_sampling import ADASYN, RandomOverSampler
+from imblearn.over_sampling import ADASYN, RandomOverSampler, SMOTE
 from imblearn.under_sampling import RandomUnderSampler
 
 
@@ -21,14 +21,14 @@ from keras.layers import Dense, Dropout, Flatten, Activation, Concatenate
 from tensorflow.keras.optimizers  import Adam, Adagrad, SGD
 
 
-def process_features(data, target, norm_method=StandardScaler(), one_hot=True, val=True):
+def process_features(data, target, norm_method=StandardScaler(), one_hot=True, val=True, test_size=0.2):
     
     # split data into features and target 
     X = data.iloc[:,:61]
     y = data[target]
     
     # split into training and test set
-    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=0.20, shuffle=False)
+    X_train, X_test, y_train, y_test = train_test_split(X, y, test_size=test_size, shuffle=False)
     
     # scale numerical features
     scaler = norm_method # QuantileTransformer(output_distribution='uniform'), StandardScaler(), MaxMinScaler()
@@ -82,6 +82,10 @@ def resample_data(X_train, y_train, method):
     
     if method=='ADASYN':
         X_temp,y_train= ADASYN().fit_resample(X_train,y_train)
+        X_train = pd.DataFrame(X_temp, columns=X_train.columns)
+
+    if method=='SMOTE':
+        X_temp,y_train= SMOTE().fit_resample(X_train,y_train)
         X_train = pd.DataFrame(X_temp, columns=X_train.columns)
         
     elif method=='over':

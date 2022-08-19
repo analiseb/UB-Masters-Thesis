@@ -140,6 +140,39 @@ binary_race =  {'British':1,
         'Black or Black British': 0   
 }
 
+# white: 0
+# black: 1
+# asian: 2 
+# mixed or other:3
+
+race_groupings_encoded = {'white':0,
+                          'black':1,
+                          'asian':2,
+                          'mixed or other':3
+
+}
+alternate_race_groupings =  {'British': 'white',
+        'Any other white background':'white',
+        'Irish':'white',
+        'Indian':'asian',
+        'Other ethnic group':'mixed or other',
+        'Caribbean':'mixed or other',
+        'Pakistani':'asian',
+        'African':'black',
+        'Any other Asian background':'asian',
+        'White':'white',
+        'Chinese':'asian',
+        'Any other mixed background':'mixed or other',
+        'White and Asian':'mixed or other',
+        'White and Black Caribbean':'mixed or other',
+        'Bangladeshi':'asian',
+        'White and Black African':'mixed or other',
+        'Mixed':'mixed or other',
+        'Asian or Asian British':'asian',
+        'Any other Black background':'black',
+        'Black or Black British': 'black'   
+}
+
 privileged_groups = { 'sex': 1,
                         'race':1
 }

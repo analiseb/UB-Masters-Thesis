@@ -8,6 +8,7 @@ from sklearn.metrics import roc_auc_score, average_precision_score
 import global_variables as gv
 import pandas as pd
 import numpy as np
+import fairness_helpers as fh
 
 from imblearn.over_sampling import ADASYN, RandomOverSampler, SMOTE
 from imblearn.under_sampling import RandomUnderSampler
@@ -57,10 +58,13 @@ def process_features(data, target, norm_method=StandardScaler(), one_hot=True, v
     else:
       return X_train, X_test, y_train, y_test
 
-def transform_features(data, target, norm_method=StandardScaler(), one_hot=True, val=True):
+def transform_features(data, target, norm_method=StandardScaler(), one_hot=True):
     
     # split data into features and target 
-    X = data.iloc[:,:61]
+    # X = data.iloc[:,:61]
+    protected_df = data.loc[:,fh.protected_attribute_names]
+    X = data.drop(fh.protected_attribute_names+[target], axis=1)
+
     y = data[target]
     
     # scale numerical features
@@ -75,8 +79,11 @@ def transform_features(data, target, norm_method=StandardScaler(), one_hot=True,
         del(dummies)
 
         X.drop(gv.nominal_cats,axis=1,inplace=True)
-    
-    return X, y
+
+        X_mid = pd.concat([X,protected_df], axis=1)
+        X = pd.concat([X_mid, y], axis=1)
+
+    return X
 
 def resample_data(X_train, y_train, method):
     

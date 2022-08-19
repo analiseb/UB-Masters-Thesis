@@ -1,12 +1,60 @@
-from aif360.datasets import StandardDataset
 from aif360.metrics import BinaryLabelDatasetMetric, ClassificationMetric
+from aif360.datasets import StandardDataset, BinaryLabelDataset
+from aif360.algorithms.inprocessing.gerryfair.clean import array_to_tuple
+from aif360.sklearn import metrics as mt
+from collections import OrderedDict
+
 import numpy as np
+import pandas as pd
 import tqdm
 import matplotlib.pyplot as plt
 from sklearn.metrics import accuracy_score
+from sklearn.preprocessing import StandardScaler, MaxAbsScaler, RobustScaler
+from aif360.sklearn import metrics as mt
 import global_variables as gv
+import utilities
+
+import keras
+import tensorflow as tf
+from tensorflow.keras.optimizers  import Adam, Adagrad, SGD, RMSprop
 
 algo_names = ['baseline', 'preprocessing', 'inprocessing', 'postprocessing']
+protected_attribute_names = ['sex-binary', 'race-binary', 'race-grouped', 'age-binary']
+
+thresh_arr = np.linspace(0.01, 0.5, 100)
+
+model = keras.models.load_model('saved_models/mlp_binary_1.h5')
+model.compile(loss='categorical_hinge',
+              optimizer=SGD(learning_rate=0.0005),
+              metrics=['acc',tf.keras.metrics.AUC(), tf.keras.metrics.Recall()])
+
+
+def get_aif360_data():
+    """
+    configure datasets according to aif360 library
+        step 1.  Binarize the sensitive attribute: 1 set to privileged group, 0 to unprivileged group
+        step 2. Binarize the label columns: 1 is the positive outcome and 0 else
+        step 3. Set the sensitive attribute as index
+    """
+    df = pd.read_csv('data/binary_full.csv')
+    pd.set_option('display.max_columns', None)
+    df.drop('Unnamed: 0', axis=1, inplace=True)
+    df['sex-binary']=df['sex'].map(gv.binary_sex)
+    df['race-grouped']=df['race'].map(gv.alternate_race_groupings).map(gv.race_groupings_encoded)
+
+    protected_attribute_names = ['sex-binary', 'race-binary', 'race-grouped', 'age-binary']
+
+    input_cols = df.iloc[:,:61].columns.to_list()
+    X1 = df.loc[:,input_cols+['CVD']+['sex-binary', 'race-binary', 'race-grouped']]
+
+    X1['age-binary'] = np.where((df['age']>=50)&(df['age']<70),1,0)
+
+    X = X1.set_index(protected_attribute_names, drop=False)
+
+    X_transformed = utilities.transform_features(X, 'CVD', norm_method=RobustScaler()) # excluding protected attribute cols
+    X_transformed = X_transformed.reset_index(drop=True)
+
+    return X, X_transformed
 
 
 def fair_metrics(dataset, y_pred):
@@ -29,9 +77,80 @@ def fair_metrics(dataset, y_pred):
         
     return result
 
+def get_fairness(df, protected_attribute, threshold=0.8, report=True):
+
+    _, _, X_test, _, _, y_test = utilities.process_features(df, 'CVD', RobustScaler(), one_hot=True)
+    
+    y_prob = model.predict(X_test)
+    y_pred = np.where(y_prob > threshold, 1,0)
+    
+    if report:
+        baseline_fairness = fairness_report(y_test, y_pred, prot_attr=protected_attribute)
+        return baseline_fairness
+    else:
+        return y_pred
+
+def fairness_report(y_test, y_pred, prot_attr, return_df=True):
+    fairness_report_dict = {
+        prot_attr: {"disparate_impact_ratio": 
+                        mt.disparate_impact_ratio(y_test, y_pred, prot_attr=prot_attr),
+                    "statistical_parity_difference": 
+                        mt.statistical_parity_difference(y_test, y_pred, prot_attr=prot_attr),
+                    "equal_opportunity_difference": 
+                        mt.equal_opportunity_difference(y_test, y_pred, prot_attr=prot_attr),
+                    "average_odds_difference": 
+                        mt.average_odds_difference(y_test, y_pred, prot_attr=prot_attr),
+
+
+                   }
+    }
+    if return_df:
+        return pd.DataFrame(fairness_report_dict)
+    else:
+        return fairness_report_dict
+
+def get_att_privilege_groups(protected_attribute):
+    privileged_group = [{protected_attribute: 1}]
+    unprivileged_group = [{protected_attribute: 0}]
+    return privileged_group, unprivileged_group
+
+def compute_metrics(dataset_true, dataset_pred, 
+                    unprivileged_groups, privileged_groups,
+                    disp = True):
+    """ Compute the key metrics """
+    classified_metric_pred = ClassificationMetric(dataset_true,
+                                                 dataset_pred, 
+                                                 unprivileged_groups=unprivileged_groups,
+                                                 privileged_groups=privileged_groups)
+    metrics = OrderedDict()
+    metrics["Balanced accuracy"] = 0.5*(classified_metric_pred.true_positive_rate()+
+                                             classified_metric_pred.true_negative_rate())
+    metrics["Statistical parity difference"] = classified_metric_pred.statistical_parity_difference()
+    metrics["Disparate impact"] = classified_metric_pred.disparate_impact()
+    metrics["Average odds difference"] = classified_metric_pred.average_odds_difference()
+    metrics["Equal opportunity difference"] = classified_metric_pred.equal_opportunity_difference()
+    metrics["Theil index"] = classified_metric_pred.theil_index()
+    
+    if disp:
+        for k in metrics:
+            print("%s = %.4f" % (k, metrics[k]))
+    
+    return metrics
+
+def test_lr_model(y_data_pred_prob, dataset, thresh_arr, protected_attribute):
+    y_pred = (y_data_pred_prob[:,1] > thresh_arr).astype(np.double)
+    dataset_pred = dataset.copy()
+    dataset_pred.labels = y_pred
+
+    privileged_group, unprivileged_group = get_att_privilege_groups(protected_attribute)
+
+    classified_metric = ClassificationMetric(dataset, dataset_pred, unprivileged_group, privileged_group)
+    metric_pred = BinaryLabelDatasetMetric(dataset_pred, unprivileged_group, privileged_group)
+    return dataset_pred.labels, classified_metric, metric_pred
+
 #Validate model on given dataset and find threshold for best balanced accuracy
 def validate_visualize(dataset, y_pred_proba):
-    thresh_arr = np.linspace(0.01, 0.7, 50)
+    thresh_arr = np.linspace(0.01, 0.7, 50) # check with other
 
     bal_acc_arr = []
     disp_imp_arr = []
@@ -179,21 +298,21 @@ def plot_compare_intervention():
     plt.plot([0, br[0]], [0, 1-br[0]], '-b', label='All calibrated classifiers (Females)')
     plt.plot([0, br[1]], [0, 1-br[1]], '-r', label='All calibrated classifiers (Males)')
 
-    plt.scatter(generalized_fpr(y_test[~i], y_lr[~i]),
-                generalized_fnr(y_test[~i], y_lr[~i]),
+    plt.scatter(mt.generalized_fpr(y_test[~i], y_lr[~i]),
+                mt.generalized_fnr(y_test[~i], y_lr[~i]),
                 300, c='b', marker='.', label='Original classifier (Females)')
-    plt.scatter(generalized_fpr(y_test[i], y_lr[i]),
-                generalized_fnr(y_test[i], y_lr[i]),
+    plt.scatter(mt.generalized_fpr(y_test[i], y_lr[i]),
+                mt.generalized_fnr(y_test[i], y_lr[i]),
                 300, c='r', marker='.', label='Original classifier (Males)')
                                                                             
-    plt.scatter(generalized_fpr(y_test[~i], y_pred[~i]),
-                generalized_fnr(y_test[~i], y_pred[~i]),
+    plt.scatter(mt.generalized_fpr(y_test[~i], y_pred[~i]),
+                mt.generalized_fnr(y_test[~i], y_pred[~i]),
                 100, c='b', marker='d', label='Post-processed classifier (Females)')
-    plt.scatter(generalized_fpr(y_test[i], y_pred[i]),
-                generalized_fnr(y_test[i], y_pred[i]),
+    plt.scatter(mt.generalized_fpr(y_test[i], y_pred[i]),
+                mt.generalized_fnr(y_test[i], y_pred[i]),
                 100, c='r', marker='d', label='Post-processed classifier (Males)')
 
-    plt.plot([0, 1], [generalized_fnr(y_test, y_pred)]*2, '--', c='0.5')
+    plt.plot([0, 1], [mt.generalized_fnr(y_test, y_pred)]*2, '--', c='0.5')
 
     plt.axis('square')
     plt.xlim([0.0, 0.4])
@@ -201,3 +320,87 @@ def plot_compare_intervention():
     plt.xlabel('generalized fpr');
     plt.ylabel('generalized fnr');
     plt.legend(bbox_to_anchor=(1.04,1), loc='upper left')
+
+def get_disparity_index(di):
+    return 1 - np.minimum(di, 1 / di)
+
+
+def get_bal_acc(classified_metric):
+    return 0.5 * (classified_metric.true_positive_rate() + classified_metric.true_negative_rate())
+
+def get_best_bal_acc_cutoff(y_pred_prob, dataset):
+    y_validate_pred_prob = y_pred_prob
+    bal_acc_arr = []
+    disp_imp_arr = []
+
+    for thresh in tqdm(thresh_arr):
+        y_validate_pred = (y_validate_pred_prob[:,1] > thresh).astype(np.double)
+        dataset_pred = dataset.copy()
+        dataset_pred.labels = y_validate_pred
+
+        # Calculate accuracy for each threshold value
+        classified_metric = ClassificationMetric(dataset, dataset_pred, unprivileged_group, privileged_group)
+        bal_acc = get_bal_acc(classified_metric)
+        bal_acc_arr.append(bal_acc)
+
+        # Calculate fairness for each threshold value
+        metric_pred = BinaryLabelDatasetMetric(dataset_pred, unprivileged_group, privileged_group)
+        disp_imp_arr.append(metric_pred.disparate_impact())
+
+    # Find threshold for best accuracy
+    thresh_arr_best_ind = np.where(bal_acc_arr == np.max(bal_acc_arr))[0][0]
+    thresh_arr_best = np.array(thresh_arr)[thresh_arr_best_ind]
+
+    # Calculate accuracy and fairness at this threshold
+    best_bal_acc = bal_acc_arr[thresh_arr_best_ind]
+    disp_imp_at_best_bal_acc = disp_imp_arr[thresh_arr_best_ind]
+
+    # Output metrics
+    acc_metrics = pd.DataFrame({'thresh_arr_best_ind' : thresh_arr_best_ind, \
+    'thresh_arr_best' : thresh_arr_best, \
+    'best_bal_acc' : best_bal_acc, \
+    'disp_imp_at_best_bal_acc' : disp_imp_at_best_bal_acc}, index=[0]).transpose()
+    return acc_metrics, bal_acc_arr, disp_imp_arr, dataset_pred.labels
+
+# post-processing
+def plot_acc_vs_fairness(metric, metric_name, bal_acc_arr, thresh_arr_best_ind):
+    fig, ax1 = plt.subplots(figsize=(10, 7))
+    ax1.plot(thresh_arr, bal_acc_arr, color='b')
+    ax1.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+    ax1.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
+    ax1.xaxis.set_tick_params(labelsize=14)
+    ax1.yaxis.set_tick_params(labelsize=14, labelcolor='b')
+    ax2 = ax1.twinx()
+    ax2.plot(thresh_arr, metric, color='r')
+    ax2.set_ylabel(metric_name, color='r', fontsize=16, fontweight='bold')
+    ax2.axvline(np.array(thresh_arr)[thresh_arr_best_ind], color='k', linestyle=':')
+    ax2.yaxis.set_tick_params(labelsize=14, labelcolor='r')
+    ax2.grid(True)
+
+def fp_vs_fn(dataset, gamma_list, iters):
+    fp_auditor = Auditor(dataset, 'FP')
+    fn_auditor = Auditor(dataset, 'FN')
+    fp_violations = []
+    fn_violations = []
+    for g in gamma_list:
+        print('gamma: {} '.format(g), end =" ")
+        fair_model = GerryFairClassifier(C=100, printflag=False, gamma=g, max_iters=iters)
+        fair_model.gamma=g
+        fair_model.fit(dataset)
+        predictions = array_to_tuple((fair_model.predict(dataset)).labels)
+        _, fp_diff = fp_auditor.audit(predictions)
+        _, fn_diff = fn_auditor.audit(predictions)
+        fp_violations.append(fp_diff)
+        fn_violations.append(fn_diff)
+
+    plt.plot(fp_violations, fn_violations, label='adult')
+    plt.xlabel('False Positive Disparity')
+    plt.ylabel('False Negative Disparity')
+    plt.legend()
+    plt.title('FP vs FN Unfairness')
+    plt.savefig('gerryfair_fp_fn.png')
+    plt.close()
+
+    gamma_list = [0.001, 0.002, 0.003, 0.004, 0.005, 0.0075, 0.01, 0.02, 0.03, 0.05]
+    fp_vs_fn(dataset, gamma_list, pareto_iters)
+    Image(filename='gerryfair_fp_fn.png')

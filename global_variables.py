@@ -7,7 +7,7 @@ tabnet_data = 'https://github.com/analiseb/UB-Masters-Thesis/blob/main/data/tabn
 outcomes = ['outcome_myocardial_infarction','outcome_cardiomyopathies','outcome_ischemic_heart_disease','outcome_heart_failure','outcome_peripheral_vascular_disease','outcome_cardiac_arrest','outcome_cerebral_infarction','outcome_arrhythmia']
 prioritized_outcomes = ['outcome_myocardial_infarction', 'outcome_ischemic_heart_disease', 'outcome_heart_failure','outcome_peripheral_vascular_disease']
 
-df = pd.read_csv(data_link)
+df = pd.read_csv('data/CVD_data.csv')
 df.drop('Unnamed: 0', axis=1, inplace=True)
 
 # classifying features by datatype for appropriate use in model

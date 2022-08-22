@@ -156,11 +156,14 @@ def compute_metrics(dataset_true, dataset_pred,
 
 #     fig, ax1 = plt.subplots(figsize=(8,4))
 #     ax1.plot(thresh_arr, bal_acc_arr)#Validate model on given dataset and find threshold for best balanced accuracy
-def validate_visualize(dataset, y_pred_proba, attribute):
+
+def validate_visualize(dataset, y_pred_proba, attribute, metric='balanced_accuracy'):
     thresh_arr = np.linspace(0.01, 0.9, 50) # check with other
 
     privileged_group, unprivileged_group =  get_att_privilege_groups(attribute)
    
+    TPR_arr = []
+    TNR_arr = []
     bal_acc_arr = []
     disp_imp_arr = []
     avg_odds_diff_arr = []
@@ -185,10 +188,6 @@ def validate_visualize(dataset, y_pred_proba, attribute):
                                                  unprivileged_groups=unprivileged_group,
                                                  privileged_groups=privileged_group)
 
-        # classified_metric = BinaryLabelDataset(dataset,
-        #                                      label_names=['CVD'], 
-        #                                      protected_attribute_names=['sex-binary'])
-
         metric_pred = BinaryLabelDatasetMetric(dataset_pred,
                                                unprivileged_groups=unprivileged_group,
                                                privileged_groups=privileged_group)
@@ -200,6 +199,8 @@ def validate_visualize(dataset, y_pred_proba, attribute):
         acc = accuracy_score(y_true=dataset.labels,
                              y_pred=dataset_pred.labels)
         bal_acc_arr.append(bal_acc)
+        TPR_arr.append(TPR)
+        TNR_arr.append(TNR)
         avg_odds_diff_arr.append(classified_metric.average_odds_difference())
         disp_imp_arr.append(metric_pred.disparate_impact())
         stat_par_diff.append(classified_metric.statistical_parity_difference())
@@ -221,101 +222,281 @@ def validate_visualize(dataset, y_pred_proba, attribute):
     
     sns.set_style("darkgrid")
 
-    # abs(1-disparate impact)
-    fig, ax1 = plt.subplots(figsize=(8,4))
-    ax1.plot(thresh_arr, bal_acc_arr)
-    ax1.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
-    ax1.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
-    ax1.xaxis.set_tick_params(labelsize=14)
-    ax1.yaxis.set_tick_params(labelsize=14)
+    if metric=='balanced_accuracy':
+        # abs(1-disparate impact)
+        fig, ax1 = plt.subplots(figsize=(8,4))
+        ax1.plot(thresh_arr, bal_acc_arr)
+        ax1.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax1.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
+        ax1.xaxis.set_tick_params(labelsize=14)
+        ax1.yaxis.set_tick_params(labelsize=14)
 
 
-    ax2 = ax1.twinx()
-    ax2.plot(thresh_arr, np.abs(1.0-np.array(disp_imp_arr)), color='r')
-    ax2.set_ylabel('abs(1-disparate impact)', color='r', fontsize=16)
-    ax1.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
-    ax1.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
-    ax1.xaxis.set_tick_params(labelsize=14)
-    ax1.yaxis.set_tick_params(labelsize=14)
-    plt.axhspan(0, 0.2, facecolor='0.2', alpha=0.15)
+        ax2 = ax1.twinx()
+        ax2.plot(thresh_arr, np.abs(1.0-np.array(disp_imp_arr)), color='r')
+        ax2.set_ylabel('abs(1-disparate impact)', color='r', fontsize=16)
+        ax1.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax1.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
+        ax1.xaxis.set_tick_params(labelsize=14)
+        ax1.yaxis.set_tick_params(labelsize=14)
+        plt.axhspan(0, 0.2, facecolor='0.2', alpha=0.15)
 
 
-    # average odds difference
-    fig, ax3 = plt.subplots(figsize=(8,4))
-    ax3.plot(thresh_arr, bal_acc_arr)
-    ax3.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
-    ax3.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
-    ax3.xaxis.set_tick_params(labelsize=14)
-    ax3.yaxis.set_tick_params(labelsize=14)
+        # average odds difference
+        fig, ax3 = plt.subplots(figsize=(8,4))
+        ax3.plot(thresh_arr, bal_acc_arr)
+        ax3.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax3.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
+        ax3.xaxis.set_tick_params(labelsize=14)
+        ax3.yaxis.set_tick_params(labelsize=14)
 
 
-    ax4 = ax3.twinx()
-    ax4.plot(thresh_arr, avg_odds_diff_arr, color='g')
-    ax4.set_ylabel('avg odds difference', color='g', fontsize=16)
-    ax3.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
-    ax3.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
-    ax3.xaxis.set_tick_params(labelsize=14)
-    ax3.yaxis.set_tick_params(labelsize=14)
+        ax4 = ax3.twinx()
+        ax4.plot(thresh_arr, avg_odds_diff_arr, color='g')
+        ax4.set_ylabel('avg odds difference', color='g', fontsize=16)
+        ax3.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax3.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
+        ax3.xaxis.set_tick_params(labelsize=14)
+        ax3.yaxis.set_tick_params(labelsize=14)
 
-    # statistical parity difference)
-    fig, ax5 = plt.subplots(figsize=(8,4))
-    ax5.plot(thresh_arr, bal_acc_arr)
-    ax5.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
-    ax5.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
-    ax5.xaxis.set_tick_params(labelsize=14)
-    ax5.yaxis.set_tick_params(labelsize=14)
-
-
-    ax6 = ax5.twinx()
-    ax6.plot(thresh_arr, stat_par_diff, color='magenta')
-    ax6.set_ylabel('Statistical Parity Difference', color='magenta', fontsize=16)
-    ax5.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
-    ax5.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
-    ax5.xaxis.set_tick_params(labelsize=14)
-    ax5.yaxis.set_tick_params(labelsize=14)
-
-    # equal opportunity difference
-    fig, ax7 = plt.subplots(figsize=(8,4))
-    ax7.plot(thresh_arr, bal_acc_arr)
-    ax7.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
-    ax7.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
-    ax7.xaxis.set_tick_params(labelsize=14)
-    ax7.yaxis.set_tick_params(labelsize=14)
+        # statistical parity difference
+        fig, ax5 = plt.subplots(figsize=(8,4))
+        ax5.plot(thresh_arr, bal_acc_arr)
+        ax5.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax5.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
+        ax5.xaxis.set_tick_params(labelsize=14)
+        ax5.yaxis.set_tick_params(labelsize=14)
 
 
-    ax8 = ax7.twinx()
-    ax8.plot(thresh_arr, eq_opp_diff, color='darkorange')
-    ax8.set_ylabel('Equal Opp Difference', color='darkorange', fontsize=16)
-    ax7.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
-    ax7.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
-    ax7.xaxis.set_tick_params(labelsize=14)
-    ax7.yaxis.set_tick_params(labelsize=14)
+        ax6 = ax5.twinx()
+        ax6.plot(thresh_arr, stat_par_diff, color='magenta')
+        ax6.set_ylabel('Statistical Parity Difference', color='magenta', fontsize=16)
+        ax5.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax5.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
+        ax5.xaxis.set_tick_params(labelsize=14)
+        ax5.yaxis.set_tick_params(labelsize=14)
 
-    # theil index
-    fig, ax9 = plt.subplots(figsize=(8,4))
-    ax9.plot(thresh_arr, bal_acc_arr)
-    ax9.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
-    ax9.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
-    ax9.xaxis.set_tick_params(labelsize=14)
-    ax9.yaxis.set_tick_params(labelsize=14)
+        # equal opportunity difference
+        fig, ax7 = plt.subplots(figsize=(8,4))
+        ax7.plot(thresh_arr, bal_acc_arr)
+        ax7.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax7.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
+        ax7.xaxis.set_tick_params(labelsize=14)
+        ax7.yaxis.set_tick_params(labelsize=14)
+
+        ax8 = ax7.twinx()
+        ax8.plot(thresh_arr, eq_opp_diff, color='darkorange')
+        ax8.set_ylabel('Equal Opp Difference', color='darkorange', fontsize=16)
+        ax7.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax7.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
+        ax7.xaxis.set_tick_params(labelsize=14)
+        ax7.yaxis.set_tick_params(labelsize=14)
+
+        # theil index
+        fig, ax9 = plt.subplots(figsize=(8,4))
+        ax9.plot(thresh_arr, bal_acc_arr)
+        ax9.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax9.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
+        ax9.xaxis.set_tick_params(labelsize=14)
+        ax9.yaxis.set_tick_params(labelsize=14)
 
 
-    ax10 = ax9.twinx()
-    ax10.plot(thresh_arr, theil_ind, color='black')
-    ax10.set_ylabel('Theil Index', color='black', fontsize=16)
-    ax9.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
-    ax9.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
-    ax9.xaxis.set_tick_params(labelsize=14)
-    ax9.yaxis.set_tick_params(labelsize=14)
+        ax10 = ax9.twinx()
+        ax10.plot(thresh_arr, theil_ind, color='black')
+        ax10.set_ylabel('Theil Index', color='black', fontsize=16)
+        ax9.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax9.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
+        ax9.xaxis.set_tick_params(labelsize=14)
+        ax9.yaxis.set_tick_params(labelsize=14)
+    
+
+    elif metric=='sensitivity':
+        # abs(1-disparate impact)
+        fig, ax1 = plt.subplots(figsize=(8,4))
+        ax1.plot(thresh_arr, TPR_arr)
+        ax1.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax1.set_ylabel('True Postive Rate', color='b', fontsize=16, fontweight='bold')
+        ax1.xaxis.set_tick_params(labelsize=14)
+        ax1.yaxis.set_tick_params(labelsize=14)
 
 
-    # ax2 = ax1.twinx()
-    # ax2.plot(thresh_arr, avg_odds_diff_arr, color='r')
-    # ax2.set_ylabel('avg. odds diff.', color='r', fontsize=16, fontweight='bold')
+        ax2 = ax1.twinx()
+        ax2.plot(thresh_arr, np.abs(1.0-np.array(disp_imp_arr)), color='r')
+        ax2.set_ylabel('abs(1-disparate impact)', color='r', fontsize=16)
+        ax1.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax1.set_ylabel('True Postive Rate', color='b', fontsize=16, fontweight='bold')
+        ax1.xaxis.set_tick_params(labelsize=14)
+        ax1.yaxis.set_tick_params(labelsize=14)
+        plt.axhspan(0, 0.2, facecolor='0.2', alpha=0.15)
 
-    # ax2.axvline(np.array(thresh_arr)[thresh_arr_best_ind], color='k', linestyle=':')
-    # ax2.yaxis.set_tick_params(labelsize=14)
-    # ax2.grid(True)
+
+        # average odds difference
+        fig, ax3 = plt.subplots(figsize=(8,4))
+        ax3.plot(thresh_arr, TPR_arr)
+        ax3.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax3.set_ylabel('True Postive Rate', color='b', fontsize=16, fontweight='bold')
+        ax3.xaxis.set_tick_params(labelsize=14)
+        ax3.yaxis.set_tick_params(labelsize=14)
+
+
+        ax4 = ax3.twinx()
+        ax4.plot(thresh_arr, avg_odds_diff_arr, color='g')
+        ax4.set_ylabel('avg odds difference', color='g', fontsize=16)
+        ax3.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax3.set_ylabel('True Postive Rate', color='b', fontsize=16, fontweight='bold')
+        ax3.xaxis.set_tick_params(labelsize=14)
+        ax3.yaxis.set_tick_params(labelsize=14)
+
+        # statistical parity difference
+        fig, ax5 = plt.subplots(figsize=(8,4))
+        ax5.plot(thresh_arr, TPR_arr)
+        ax5.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax5.set_ylabel('True Postive Rate', color='b', fontsize=16, fontweight='bold')
+        ax5.xaxis.set_tick_params(labelsize=14)
+
+        ax6 = ax5.twinx()
+        ax6.plot(thresh_arr, stat_par_diff, color='magenta')
+        ax6.set_ylabel('Statistical Parity Difference', color='magenta', fontsize=16)
+        ax5.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax5.set_ylabel('True Postive Rate', color='b', fontsize=16, fontweight='bold')
+        ax5.xaxis.set_tick_params(labelsize=14)
+        ax5.yaxis.set_tick_params(labelsize=14)
+
+        # equal opportunity difference
+        fig, ax7 = plt.subplots(figsize=(8,4))
+        ax7.plot(thresh_arr, TPR_arr)
+        ax7.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax7.set_ylabel('True Postive Rate', color='b', fontsize=16, fontweight='bold')
+        ax7.xaxis.set_tick_params(labelsize=14)
+        ax7.yaxis.set_tick_params(labelsize=14)
+
+        ax8 = ax7.twinx()
+        ax8.plot(thresh_arr, eq_opp_diff, color='darkorange')
+        ax8.set_ylabel('Equal Opp Difference', color='darkorange', fontsize=16)
+        ax7.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax7.set_ylabel('True Postive Rate', color='b', fontsize=16, fontweight='bold')
+        ax7.xaxis.set_tick_params(labelsize=14)
+        ax7.yaxis.set_tick_params(labelsize=14)
+
+        # theil index
+        fig, ax9 = plt.subplots(figsize=(8,4))
+        ax9.plot(thresh_arr, TPR_arr)
+        ax9.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax9.set_ylabel('True Postive Rate', color='b', fontsize=16, fontweight='bold')
+        ax9.xaxis.set_tick_params(labelsize=14)
+        ax9.yaxis.set_tick_params(labelsize=14)
+
+
+        ax10 = ax9.twinx()
+        ax10.plot(thresh_arr, theil_ind, color='black')
+        ax10.set_ylabel('Theil Index', color='black', fontsize=16)
+        ax9.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax9.set_ylabel('True Postive Rate', color='b', fontsize=16, fontweight='bold')
+        ax9.xaxis.set_tick_params(labelsize=14)
+        ax9.yaxis.set_tick_params(labelsize=14)
+
+    elif metric=='specificity':
+        # abs(1-disparate impact)
+        fig, ax1 = plt.subplots(figsize=(8,4))
+        ax1.plot(thresh_arr, TNR_arr)
+        ax1.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax1.set_ylabel('True Negative Rate', color='b', fontsize=16, fontweight='bold')
+        ax1.xaxis.set_tick_params(labelsize=14)
+        ax1.yaxis.set_tick_params(labelsize=14)
+
+
+        ax2 = ax1.twinx()
+        ax2.plot(thresh_arr, np.abs(1.0-np.array(disp_imp_arr)), color='r')
+        ax2.set_ylabel('abs(1-disparate impact)', color='r', fontsize=16)
+        ax1.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax1.set_ylabel('True Negative Rate', color='b', fontsize=16, fontweight='bold')
+        ax1.xaxis.set_tick_params(labelsize=14)
+        ax1.yaxis.set_tick_params(labelsize=14)
+        plt.axhspan(0, 0.2, facecolor='0.2', alpha=0.15)
+
+
+        # average odds difference
+        fig, ax3 = plt.subplots(figsize=(8,4))
+        ax3.plot(thresh_arr, TNR_arr)
+        ax3.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax3.set_ylabel('True Negative Rate', color='b', fontsize=16, fontweight='bold')
+        ax3.xaxis.set_tick_params(labelsize=14)
+        ax3.yaxis.set_tick_params(labelsize=14)
+
+
+        ax4 = ax3.twinx()
+        ax4.plot(thresh_arr, avg_odds_diff_arr, color='g')
+        ax4.set_ylabel('avg odds difference', color='g', fontsize=16)
+        ax3.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax3.set_ylabel('True Negative Rate', color='b', fontsize=16, fontweight='bold')
+        ax3.xaxis.set_tick_params(labelsize=14)
+        ax3.yaxis.set_tick_params(labelsize=14)
+
+        # statistical parity difference
+        fig, ax5 = plt.subplots(figsize=(8,4))
+        ax5.plot(thresh_arr, TNR_arr)
+        ax5.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax5.set_ylabel('True Negative Rate', color='b', fontsize=16, fontweight='bold')
+        ax5.xaxis.set_tick_params(labelsize=14)
+        ax5.yaxis.set_tick_params(labelsize=14)
+
+
+        ax6 = ax5.twinx()
+        ax6.plot(thresh_arr, stat_par_diff, color='magenta')
+        ax6.set_ylabel('Statistical Parity Difference', color='magenta', fontsize=16)
+        ax5.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax5.set_ylabel('True Negative Rate', color='b', fontsize=16, fontweight='bold')
+        ax5.xaxis.set_tick_params(labelsize=14)
+        ax5.yaxis.set_tick_params(labelsize=14)
+
+        # equal opportunity difference
+        fig, ax7 = plt.subplots(figsize=(8,4))
+        ax7.plot(thresh_arr, TNR_arr)
+        ax7.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax7.set_ylabel('True Negative Rate', color='b', fontsize=16, fontweight='bold')
+        ax7.xaxis.set_tick_params(labelsize=14)
+        ax7.yaxis.set_tick_params(labelsize=14)
+
+        ax8 = ax7.twinx()
+        ax8.plot(thresh_arr, eq_opp_diff, color='darkorange')
+        ax8.set_ylabel('Equal Opp Difference', color='darkorange', fontsize=16)
+        ax7.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax7.set_ylabel('True Negative Rate', color='b', fontsize=16, fontweight='bold')
+        ax7.xaxis.set_tick_params(labelsize=14)
+        ax7.yaxis.set_tick_params(labelsize=14)
+
+        # theil index
+        fig, ax9 = plt.subplots(figsize=(8,4))
+        ax9.plot(thresh_arr, TNR_arr)
+        ax9.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax9.set_ylabel('True Negative Rate', color='b', fontsize=16, fontweight='bold')
+        ax9.xaxis.set_tick_params(labelsize=14)
+        ax9.yaxis.set_tick_params(labelsize=14)
+
+
+        ax10 = ax9.twinx()
+        ax10.plot(thresh_arr, theil_ind, color='black')
+        ax10.set_ylabel('Theil Index', color='black', fontsize=16)
+        ax9.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+        ax9.set_ylabel('True Negative Rate', color='b', fontsize=16, fontweight='bold')
+        ax9.xaxis.set_tick_params(labelsize=14)
+        ax9.yaxis.set_tick_params(labelsize=14)
+    # # TPR DI
+    # fig, ax11 = plt.subplots(figsize=(8,4))
+    # ax11.plot(thresh_arr, TPR_arr)
+    # ax11.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+    # ax11.set_ylabel('True Postive Rate', color='b', fontsize=16, fontweight='bold')
+    # ax11.xaxis.set_tick_params(labelsize=14)
+    # ax11.yaxis.set_tick_params(labelsize=14)
+
+
+    # ax12 = ax11.twinx()
+    # ax12.plot(thresh_arr, np.abs(1.0-np.array(disp_imp_arr)), color='#ff9221')
+    # ax12.set_ylabel('abs(1-disparate impact)', color='#ff9221', fontsize=16)
+    # ax11.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
+    # ax11.set_ylabel('True Positive Rate', color='b', fontsize=16, fontweight='bold')
+    # ax11.xaxis.set_tick_params(labelsize=14)
+    # ax11.yaxis.set_tick_params(labelsize=14)
 
     print("Threshold corresponding to Best balanced accuracy: %6.4f" % thresh_arr_best)
     print("Best balanced accuracy: %6.4f" % best_bal_acc)
@@ -324,100 +505,11 @@ def validate_visualize(dataset, y_pred_proba, attribute):
     print("Corresponding statistical parity difference value: %6.4f" % stat_par_diff_at_best_bal_acc)
     print("Corresponding equal opportunity difference value: %6.4f" % stat_par_diff_at_best_bal_acc)
     print("Corresponding Theil index value: %6.4f" % theil_ind_at_best_bal_acc)
+
     return thresh_arr_best, best_bal_acc, disp_imp_at_best_bal_acc, avg_odds_diff_at_best_bal_acc, stat_par_diff_at_best_bal_acc, theil_ind_at_best_bal_acc 
 
 
-# def validate_visualize(dataset, y_pred_proba):
-#     thresh_arr = np.linspace(0.01, 0.9, 50) # check with other
 
-#     bal_acc_arr = []
-#     disp_imp_arr = []
-#     avg_odds_diff_arr = []
-#     stat_par_diff = []
-#     eq_opp_diff = []
-#     theil_ind = []
-    
-
-#     for thresh in tqdm(thresh_arr):
-#         y_validate_pred = (y_pred_proba> thresh).astype(np.double)
-
-#         dataset_pred = dataset.copy()
-#         dataset_pred.labels = y_validate_pred
-
-#         classified_metric = ClassificationMetric(dataset, 
-#                                                  dataset_pred,
-#                                                  unprivileged_groups=gv.unprivileged_groups,
-#                                                  privileged_groups=gv.privileged_groups)
-
-#         # classified_metric = BinaryLabelDataset(dataset,
-#         #                                      label_names=['CVD'], 
-#         #                                      protected_attribute_names=['sex-binary'])
-
-#         metric_pred = BinaryLabelDatasetMetric(dataset_pred,
-#                                                unprivileged_groups=gv.unprivileged_groups,
-#                                                privileged_groups=gv.privileged_groups)
-
-#         TPR = classified_metric.true_positive_rate()
-#         TNR = classified_metric.true_negative_rate()
-#         bal_acc = 0.5*(TPR+TNR)
-
-#         acc = accuracy_score(y_true=dataset.labels,
-#                              y_pred=dataset_pred.labels)
-#         bal_acc_arr.append(bal_acc)
-#         avg_odds_diff_arr.append(classified_metric.average_odds_difference())
-#         disp_imp_arr.append(metric_pred.disparate_impact())
-#         stat_par_diff.append(classified_metric.statistical_parity_difference())
-#         eq_opp_diff.append(classified_metric.equal_opportunity_difference())
-#         theil_ind.append(classified_metric.theil_index())
-
-
-#     thresh_arr_best_ind = np.where(bal_acc_arr == np.max(bal_acc_arr))[0][0]
-#     thresh_arr_best = np.array(thresh_arr)[thresh_arr_best_ind]
-
-#     best_bal_acc = bal_acc_arr[thresh_arr_best_ind]
-#     disp_imp_at_best_bal_acc = np.abs(1.0-np.array(disp_imp_arr))[thresh_arr_best_ind]
-
-#     avg_odds_diff_at_best_bal_acc = avg_odds_diff_arr[thresh_arr_best_ind]
-
-#     stat_par_diff_at_best_bal_acc = stat_par_diff[thresh_arr_best_ind]
-#     eq_opp_diff_at_best_bal_acc = eq_opp_diff[thresh_arr_best_ind]
-#     theil_ind_at_best_bal_acc = theil_ind[thresh_arr_best_ind]
-    
-#     #Plot balanced accuracy, abs(1-disparate impact)
-
-#     fig, ax1 = plt.subplots(figsize=(8,4))
-#     ax1.plot(thresh_arr, bal_acc_arr)
-#     ax1.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
-#     ax1.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
-#     ax1.xaxis.set_tick_params(labelsize=14)
-#     ax1.yaxis.set_tick_params(labelsize=14)
-
-
-#     ax2 = ax1.twinx()
-#     ax2.plot(thresh_arr, np.abs(1.0-np.array(disp_imp_arr)), color='r')
-#     ax2.set_ylabel('abs(1-disparate impact)', color='r', fontsize=16
-#     ax1.set_xlabel('Classification Thresholds', fontsize=16, fontweight='bold')
-#     ax1.set_ylabel('Balanced Accuracy', color='b', fontsize=16, fontweight='bold')
-#     ax1.xaxis.set_tick_params(labelsize=14)
-#     ax1.yaxis.set_tick_params(labelsize=14)
-
-
-#     ax2 = ax1.twinx()
-#     ax2.plot(thresh_arr, avg_odds_diff_arr, color='r')
-#     ax2.set_ylabel('avg. odds diff.', color='r', fontsize=16, fontweight='bold')
-
-#     ax2.axvline(np.array(thresh_arr)[thresh_arr_best_ind], color='k', linestyle=':')
-#     ax2.yaxis.set_tick_params(labelsize=14)
-#     ax2.grid(True)
-
-#     print("Threshold corresponding to Best balanced accuracy: %6.4f" % thresh_arr_best)
-#     print("Best balanced accuracy: %6.4f" % best_bal_acc)
-#     print("Corresponding abs(1-disparate impact) value: %6.4f" % disp_imp_at_best_bal_acc)
-#     print("Corresponding average odds difference value: %6.4f" % avg_odds_diff_at_best_bal_acc)
-#     print("Corresponding statistical parity difference value: %6.4f" % stat_par_diff_at_best_bal_acc)
-#     print("Corresponding equal opportunity difference value: %6.4f" % eq_opp_diff_at_best_bal_acc)
-#     print("Corresponding Theil index value: %6.4f" % theil_ind_at_best_bal_acc)
-#     return thresh_arr_best
 #Evaluate performance of a given model with a given threshold on a given dataset
 
 def validate_test(dataset, y_pred_proba, threshold):

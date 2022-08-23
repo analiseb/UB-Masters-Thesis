@@ -171,6 +171,7 @@ def validate_visualize(dataset, y_pred_proba, attribute, metric='balanced_accura
     eq_opp_diff = []
     theil_ind = []
     
+    full_results = pd.DataFrame(columns = ['threshold', 'sensitivity', 'specificity', 'Balanced Accuracy', 'Avg Odds Difference', 'Disparate Impact', 'Statistical Parity Difference', 'Equal Opportunity Difference', 'Theil Index'])
     dataset = StandardDataset(dataset, 
                           label_name='CVD', 
                           favorable_classes=[1], 
@@ -207,6 +208,8 @@ def validate_visualize(dataset, y_pred_proba, attribute, metric='balanced_accura
         eq_opp_diff.append(classified_metric.equal_opportunity_difference())
         theil_ind.append(classified_metric.theil_index())
 
+        df_new = pd.DataFrame({'threshold':thresh, 'sensitivity':TPR, 'specificity':TNR, 'Balanced Accuracy': bal_acc, 'Avg Odds Difference':classified_metric.average_odds_difference(), 'Disparate Impact':metric_pred.disparate_impact(), 'Statistical Parity Difference':classified_metric.statistical_parity_difference(), 'Equal Opportunity Difference':classified_metric.equal_opportunity_difference(), 'Theil Index':classified_metric.theil_index()}, index=[0])
+        full_results = pd.concat([full_results,df_new])
 
     thresh_arr_best_ind = np.where(bal_acc_arr == np.max(bal_acc_arr))[0][0]
     thresh_arr_best = np.array(thresh_arr)[thresh_arr_best_ind]
@@ -503,10 +506,10 @@ def validate_visualize(dataset, y_pred_proba, attribute, metric='balanced_accura
     print("Corresponding abs(1-disparate impact) value: %6.4f" % disp_imp_at_best_bal_acc)
     print("Corresponding average odds difference value: %6.4f" % avg_odds_diff_at_best_bal_acc)
     print("Corresponding statistical parity difference value: %6.4f" % stat_par_diff_at_best_bal_acc)
-    print("Corresponding equal opportunity difference value: %6.4f" % stat_par_diff_at_best_bal_acc)
+    print("Corresponding equal opportunity difference value: %6.4f" % eq_opp_diff_at_best_bal_acc)
     print("Corresponding Theil index value: %6.4f" % theil_ind_at_best_bal_acc)
 
-    return thresh_arr_best, best_bal_acc, disp_imp_at_best_bal_acc, avg_odds_diff_at_best_bal_acc, stat_par_diff_at_best_bal_acc, theil_ind_at_best_bal_acc 
+    return thresh_arr_best, best_bal_acc, disp_imp_at_best_bal_acc, avg_odds_diff_at_best_bal_acc, stat_par_diff_at_best_bal_acc, eq_opp_diff_at_best_bal_acc, theil_ind_at_best_bal_acc, full_results
 
 
 

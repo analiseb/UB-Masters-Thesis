@@ -173,10 +173,7 @@ alternate_race_groupings =  {'British': 'white',
         'Black or Black British': 'black'   
 }
 
-privileged_groups = { 'sex': 1,
-                        'race':1
-}
+privileged_groups = [{ 'sex': 1}, {'age':1}, {'race-binary':1}, {'race-grouped':0}, {'race-grouped':2} ]
 
-unprivileged_groups = { 'sex': 0,
-                        'race':0
-}
+
+unprivileged_groups = [{ 'sex': 0}, {'age':0}, {'race-binary':0}, {'race-grouped':1}, {'race-grouped':3} ]

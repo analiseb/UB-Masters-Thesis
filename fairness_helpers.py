@@ -57,6 +57,25 @@ def get_aif360_data():
 
     return X, X_transformed
 
+def confusion_eval2(predictions, X_test, y_test, threshold=0.5):
+    """
+    Takes in model, testing data, and decision threshold and outputs prediction performance (confusion matrix,
+    sensitivity, specificity, and accuracy)
+    """
+    y_predicted = (predictions >= threshold)
+
+    conf_mat = confusion_matrix(y_test, y_predicted)
+    print(conf_mat)
+    total = sum(sum(conf_mat))
+    sensitivity = conf_mat[0, 0]/(conf_mat[0, 0] + conf_mat[1, 0])
+    specificity = conf_mat[1, 1]/(conf_mat[1, 1] + conf_mat[0, 1])
+    accuracy = (conf_mat[0, 0] + conf_mat[1, 1])/total
+    bal_accuracy = balanced_accuracy_score(y_test, y_predicted)
+    print('specificity : ', specificity)
+    print('sensitivity : ', sensitivity)
+    print('accuracy : ', accuracy)
+    print('balanced accuracy: ', bal_accuracy)
+    return conf_mat, sensitivity, specificity, accuracy, bal_accuracy
 
 def fair_metrics(dataset, y_pred):
     dataset_pred = dataset.copy()

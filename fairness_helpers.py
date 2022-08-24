@@ -30,16 +30,18 @@ model.compile(loss='categorical_hinge',
               metrics=['acc',tf.keras.metrics.AUC(), tf.keras.metrics.Recall()])
 
 
-def get_aif360_data():
+def get_aif360_data(colab=False):
     """
     configure datasets according to aif360 library
         step 1.  Binarize the sensitive attribute: 1 set to privileged group, 0 to unprivileged group
         step 2. Binarize the label columns: 1 is the positive outcome and 0 else
         step 3. Set the sensitive attribute as index
     """
-    # df = pd.read_csv('/content/gdrive/MyDrive/UB-Masters-Thesis/data/binary_full.csv')
 
-    df = pd.read_csv('data/binary_full.csv')
+    if colab:
+        df = pd.read_csv('/content/gdrive/MyDrive/UB-Masters-Thesis/data/binary_full.csv')
+    else:
+        df = pd.read_csv('data/binary_full.csv')
     pd.set_option('display.max_columns', None)
     df.drop('Unnamed: 0', axis=1, inplace=True)
     df['sex-binary']=df['sex'].map(gv.binary_sex)

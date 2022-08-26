@@ -14,6 +14,7 @@ from sklearn.preprocessing import StandardScaler, MaxAbsScaler, RobustScaler
 from aif360.sklearn import metrics as mt
 import global_variables as gv
 import utilities
+from IPython.display import Markdown, display
 
 import keras
 import tensorflow as tf
@@ -697,3 +698,82 @@ def fp_vs_fn(dataset, gamma_list, iters):
     gamma_list = [0.001, 0.002, 0.003, 0.004, 0.005, 0.0075, 0.01, 0.02, 0.03, 0.05]
     fp_vs_fn(dataset, gamma_list, pareto_iters)
     Image(filename='gerryfair_fp_fn.png')
+
+def plot_calibrated_eq_odds(dataset_orig_valid_pred1, dataset_orig_test_pred1, dataset_transf_valid_pred11, dataset_transf_test_pred11, u1, p1 ):
+  # Thresholds
+  all_thresh = np.linspace(0.01, 0.99, 25)
+  display(Markdown("#### Classification thresholds used for validation and parameter selection"))
+
+  bef_avg_odds_diff_test = []
+  bef_avg_odds_diff_valid = []
+  aft_avg_odds_diff_test = []
+  aft_avg_odds_diff_valid = []
+  bef_bal_acc_valid = []
+  bef_bal_acc_test = []
+  aft_bal_acc_valid = []
+  aft_bal_acc_test = []
+  for thresh in tqdm(all_thresh):
+      
+      dataset_orig_valid_pred_thresh1 = dataset_orig_valid_pred1.copy(deepcopy=True)
+      dataset_orig_test_pred_thresh1 = dataset_orig_test_pred1.copy(deepcopy=True)
+      dataset_transf_valid_pred_thresh1 = dataset_transf_valid_pred11.copy(deepcopy=True)
+      dataset_transf_test_pred_thresh1 = dataset_transf_test_pred11.copy(deepcopy=True)
+      
+      # Labels for the datasets from scores
+      y_temp = np.zeros_like(dataset_orig_valid_pred_thresh1.labels)
+      y_temp[dataset_orig_valid_pred_thresh1.scores >= thresh] = dataset_orig_valid_pred_thresh1.favorable_label
+      y_temp[~(dataset_orig_valid_pred_thresh1.scores >= thresh)] = dataset_orig_valid_pred_thresh1.unfavorable_label
+      dataset_orig_valid_pred_thresh1.labels = y_temp
+
+      y_temp = np.zeros_like(dataset_orig_test_pred_thresh1.labels)
+      y_temp[dataset_orig_test_pred_thresh1.scores >= thresh] = dataset_orig_test_pred_thresh1.favorable_label
+      y_temp[~(dataset_orig_test_pred_thresh1.scores >= thresh)] = dataset_orig_test_pred_thresh1.unfavorable_label
+      dataset_orig_test_pred_thresh1.labels = y_temp
+      
+      y_temp = np.zeros_like(dataset_transf_valid_pred_thresh1.labels)
+      y_temp[dataset_transf_valid_pred_thresh1.scores >= thresh] = dataset_transf_valid_pred_thresh1.favorable_label
+      y_temp[~(dataset_transf_valid_pred_thresh1.scores >= thresh)] = dataset_transf_valid_pred_thresh1.unfavorable_label
+      dataset_transf_valid_pred_thresh1.labels = y_temp
+      
+      y_temp = np.zeros_like(dataset_transf_test_pred_thresh1.labels)
+      y_temp[dataset_transf_test_pred_thresh1.scores >= thresh] = dataset_transf_test_pred_thresh1.favorable_label
+      y_temp[~(dataset_transf_test_pred_thresh1.scores >= thresh)] = dataset_transf_test_pred_thresh1.unfavorable_label
+      dataset_transf_test_pred_thresh1.labels = y_temp
+      
+      # Metrics for original validation data
+      classified_metric_orig_valid = ClassificationMetric(dataset_orig_valid1,
+                                                  dataset_orig_valid_pred_thresh1,
+                                                  unprivileged_groups=u1,
+                                                  privileged_groups=p1)
+      bef_avg_odds_diff_valid.append(classified_metric_orig_valid.equal_opportunity_difference())
+
+      bef_bal_acc_valid.append(0.5*(classified_metric_orig_valid.true_positive_rate()+
+                                classified_metric_orig_valid.true_negative_rate()))
+
+      classified_metric_orig_test = ClassificationMetric(dataset_orig_test1,
+                                                  dataset_orig_test_pred_thresh1,
+                                                  unprivileged_groups=u1,
+                                                  privileged_groups=p1)
+      bef_avg_odds_diff_test.append(classified_metric_orig_test.equal_opportunity_difference())
+      bef_bal_acc_test.append(0.5*(classified_metric_orig_test.true_positive_rate()+
+                                classified_metric_orig_test.true_negative_rate()))
+
+      # Metrics for transf validation data
+      classified_metric_transf_valid = ClassificationMetric(
+                                      dataset_orig_valid1, 
+                                      dataset_transf_valid_pred_thresh1,
+                                      unprivileged_groups=u1,
+                                      privileged_groups=p1)
+      aft_avg_odds_diff_valid.append(classified_metric_transf_valid.equal_opportunity_difference())
+      aft_bal_acc_valid.append(0.5*(classified_metric_transf_valid.true_positive_rate()+
+                                classified_metric_transf_valid.true_negative_rate()))
+
+      # Metrics for transf testing data
+      classified_metric_transf_test = ClassificationMetric(dataset_orig_test1,
+                                                  dataset_transf_test_pred_thresh1,
+                                                  unprivileged_groups=u1,
+                                                  privileged_groups=p1)
+      aft_avg_odds_diff_test.append(classified_metric_transf_test.equal_opportunity_difference())
+      aft_bal_acc_test.append(0.5*(classified_metric_transf_test.true_positive_rate()+
+                                    classified_metric_transf_test.true_negative_rate()))
+      return classified_metric_orig_test, classified_metric_transf_test

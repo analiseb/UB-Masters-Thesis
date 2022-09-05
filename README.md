@@ -20,7 +20,7 @@ Data for this project was sourced from the [UKBiobank](https://www.ukbiobank.ac.
 
 The subset of this dataset used throughout the lifespan of the project consists of approximately 500k records with large representation skews for each of the demographics within the determined protected groups.
 
-### Structure
+## Project Structure
 
 #### Data Preprocessing & EDA (prefix - PRE)
 * [Data Cleaning](https://github.com/analiseb/UB-Masters-Thesis/blob/main/PRE-data-preprocessing-alternative.ipynb)

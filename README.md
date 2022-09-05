@@ -14,6 +14,30 @@ The aim of this project is to investigate and develop a fairness framework to mi
   7. Cerebral Infarction
   8. Arrhythmia
 
+## Abstract
+
+The advent of artificial intelligence within medicine continues to make strides in
+fast and dependable disease diagnosis, removing the burden off of our clinicians
+and medical professionals and allowing them to focus on more nuanced and spe-
+cialized tasks. While the potential of these automated frameworks to do good
+is expansive, we must criticize the limitations and inherent challenges that such
+processes pose in light of higher stakes applications where patients’ lives and liveli-
+hoods are directly impacted. At the forefront of these challenges is bias. Because
+models must learn from historical data and on a predetermined objective function,
+they remain vulnerable to perpetuating bias relics and disregarding demographic
+fairness in the name of increased performance. This project aims to mend these
+demographic biases and develop a Cardiovascular disease classifier that is fair. We
+take a three-pronged approach to our development life cycle– building an effective
+machine learning classification model, in-depth bias evaluation, and a framework
+of mitigation interventions to result in a model that can effectively classify car-
+diovascular disease while remaining fair to our identified protected attributes. We
+investigate and implement a variety of preprocessing and postprocessing mitigation
+methods to both gradient boosted and deep learning models, successfully manag-
+ing the fairness-accuracy tradeoff to ensure the equitable sharing of benefits of AI
+for all.
+ii
+
+
 ## The Dataset
 
 Data for this project was sourced from the [UKBiobank](https://www.ukbiobank.ac.uk/), a largescale biomedical database with information from participants across the UK. Fields used in this project include physical measures, sociodemographic, lifestyle, environmental, early-life, mental health, and bloody assay factors.

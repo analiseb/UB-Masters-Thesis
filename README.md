@@ -31,7 +31,7 @@ The subset of this dataset used throughout the lifespan of the project consists 
 
 #### Data Preprocessing & EDA (prefix - PRE)
 * [Data Cleaning](https://github.com/analiseb/UB-Masters-Thesis/blob/main/PRE-data-preprocessing-alternative.ipynb)
-* [Imputation](https://github.com/analiseb/UB-Masters-Thesis/blob/main/PRE_normalization_imputation-alternative.ipynb)
+* [Imputation](https://github.com/analiseb/UB-Masters-Thesis/blob/main/PRE_missforest_imputation.ipynb)
 * [Exporatory Data Analysis](https://github.com/analiseb/UB-Masters-Thesis/blob/main/PRE_eda.ipynb)
 
 #### Model Development (prefix - MODEL)
@@ -47,7 +47,7 @@ The subset of this dataset used throughout the lifespan of the project consists 
 * [Bias Evaluation](https://github.com/analiseb/UB-Masters-Thesis/blob/main/BEVAL_bias_analysis-alternative.ipynb)
 * [Bias Mitigatation - Preprocessing](https://github.com/analiseb/UB-Masters-Thesis/blob/main/MIT_preprocessing_mitigation--XGBoost_methods.ipynb)
 * [Bias Mitigation - Postprocessing](https://github.com/analiseb/UB-Masters-Thesis/blob/main/MIT_postprocessing_mitigation--DL_methods_recovered.ipynb)
-* [Results Summary](https://github.com/analiseb/UB-Masters-Thesis/blob/main/RESULTS%20.ipynb)
+* [Results Summary](https://github.com/analiseb/UB-Masters-Thesis/blob/main/MIT_results_summary.ipynb)
 
 #### Other
 * [utility functions (data processing & plotting)](https://github.com/analiseb/UB-Masters-Thesis/blob/main/utilities.py)

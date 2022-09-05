@@ -69,4 +69,4 @@ The following fairness metrics from AIF360 are used to evaluate fairness for all
 **Statistical Parity Difference (SPD):** measures the difference that the majority and protected classes to receive a favorable outcome
    $$SPD = P(\hat{Y}=1 | A=minority)-P(\hat{Y}=1 | A=majority)$$
 **Theil Index:** measures an entropic distance the population is away from the 'ideal' state of everyone having the same outcome
-    $$Theil\;Index = \frac{1}{n}\Sigma_{i=1}^{n}\frac{b_{i}}{\mu}ln\frac{b_{i}}{\mu},\text{   where  }b_{i}= \hat{y_{i}}-y_{i}+1$$
+    $$Theil\text{ }Index = \frac{1}{n}\Sigma_{i=1}^{n}\frac{b_{i}}{\mu}ln\frac{b_{i}}{\mu},\text{   where  }b_{i}= \hat{y_{i}}-y_{i}+1$$

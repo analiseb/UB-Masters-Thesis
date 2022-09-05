@@ -58,12 +58,16 @@ The subset of this dataset used throughout the lifespan of the project consists 
 
 **Average Odds Difference (AOD):** measures the bias by using the false positive rate and the true positive rate
     $$AOD = \frac{1}{2}[(FPR_{D=unprivileged}-FPR_{D=privileged}+TPR_{D=privileged}-TPR_{D=unprivileged}] $$
+    
 **Disparate Impact (DI):** compares the proportion of individuals that receive a favorable outcome for two groups, a majority group and a minority group
     $$DI = P(\hat{Y}=1 | A=minority)/P(\hat{Y}=1 | A=majority)$$
     $$\text{where }\hat{Y} \text{ are the model predictions and A is the group of the sensitive attributes}$$
+    
 **Equal Opportunity Difference (EOP):** measures the deviation from the equality of opportunity, which means that the same proportion of each population receives the favorable outcome
     $$ EOP = P(\hat{Y}=1 | A=minority)-P(\hat{Y}=1 | A=majority; Y=1)$$
+    
 **Statistical Parity Difference (SPD):** measures the difference that the majority and protected classes to receive a favorable outcome
    $$SPD = P(\hat{Y}=1 | A=minority)-P(\hat{Y}=1 | A=majority)$$
+   
 **Theil Index:** measures an entropic distance the population is away from the 'ideal' state of everyone having the same outcome
     $$Theil\text{ }Index = \frac{1}{n}\Sigma_{i=1}^{n}\frac{b_{i}}{\mu}ln\frac{b_{i}}{\mu},\text{   where  }b_{i}= \hat{y_{i}}-y_{i}+1$$

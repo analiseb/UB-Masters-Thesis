@@ -56,9 +56,6 @@ The subset of this dataset used throughout the lifespan of the project consists 
 
 ## Fairness Metrics
 
-The following fairness metrics from AIF360 are used to evaluate fairness for all protected attributes.
-
-
 **Average Odds Difference (AOD):** measures the bias by using the false positive rate and the true positive rate
     $$AOD = \frac{1}{2}[(FPR_{D=unprivileged}-FPR_{D=privileged}+TPR_{D=privileged}-TPR_{D=unprivileged}] $$
 **Disparate Impact (DI):** compares the proportion of individuals that receive a favorable outcome for two groups, a majority group and a minority group

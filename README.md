@@ -65,7 +65,7 @@ The subset of this dataset used throughout the lifespan of the project consists 
     $$\text{where }\hat{Y} \text{ are the model predictions and A is the group of the sensitive attributes}$$
     
 **Equal Opportunity Difference (EOP):** measures the deviation from the equality of opportunity, which means that the same proportion of each population receives the favorable outcome
-    $$ EOP = P(\hat{Y}=1 | A=minority)-P(\hat{Y}=1 | A=majority; Y=1)$$
+    $$EOP = P(\hat{Y}=1 | A=minority)-P(\hat{Y}=1 | A=majority; Y=1)$$
     
 **Statistical Parity Difference (SPD):** measures the difference that the majority and protected classes to receive a favorable outcome
    $$SPD = P(\hat{Y}=1 | A=minority)-P(\hat{Y}=1 | A=majority)$$

@@ -53,6 +53,7 @@ The subset of this dataset used throughout the lifespan of the project consists 
 * [utility functions (data processing & plotting)](https://github.com/analiseb/UB-Masters-Thesis/blob/main/utilities.py)
 * [fairness functions for bias evaluation ](https://github.com/analiseb/UB-Masters-Thesis/blob/main/fairness_helpers.py)
 * [variables for data interpretation](https://github.com/analiseb/UB-Masters-Thesis/blob/main/global_variables.py)
+* ~~Data~~ excluded for privacy 
 
 ## Fairness Metrics
 

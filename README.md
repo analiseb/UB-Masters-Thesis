@@ -55,6 +55,7 @@ The subset of this dataset used throughout the lifespan of the project consists 
 * [variables for data interpretation](https://github.com/analiseb/UB-Masters-Thesis/blob/main/global_variables.py)
 * ~~Data~~ excluded for privacy 
 * [Final Report](https://github.com/analiseb/UB-Masters-Thesis/blob/main/thesis_report.pdf)
+* [Presentation Slides](https://github.com/analiseb/UB-Masters-Thesis/blob/main/Thesis%20Presentation.pdf)
 
 ## Fairness Metrics
 
